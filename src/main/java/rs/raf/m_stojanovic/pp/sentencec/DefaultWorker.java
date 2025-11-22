@@ -1,6 +1,8 @@
 package rs.raf.m_stojanovic.pp.sentencec;
 
+import rs.raf.m_stojanovic.pp.sentencec.ast.Line;
 import rs.raf.m_stojanovic.pp.sentencec.lexer.Lexer;
+import rs.raf.m_stojanovic.pp.sentencec.parser.Parser;
 import rs.raf.m_stojanovic.pp.sentencec.token.Token;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public class DefaultWorker implements Worker {
 
         ++this.lineNumber;
 
+        System.out.println();
+
         // Lexer
         Lexer lexer = new Lexer(code, this.lineNumber);
         List<Token> tokens;
@@ -25,6 +29,20 @@ public class DefaultWorker implements Worker {
             return new WorkResult.BadResult(e, -1);
         }
         tokens.forEach(System.out::println);
+
+        System.out.println();
+
+        // Parser
+        Parser parser = new Parser(code, tokens);
+        Line line;
+        try {
+            line = parser.parse();
+        } catch (RuntimeException e) {
+            return new WorkResult.BadResult(e, -1);
+        }
+        line.print(System.out);
+
+        System.out.println();
 
         return new WorkResult.GoodResult(code);
     }

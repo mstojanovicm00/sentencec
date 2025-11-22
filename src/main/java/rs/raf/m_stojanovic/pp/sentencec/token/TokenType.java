@@ -13,6 +13,7 @@ public enum TokenType {
     WORD(""),
     SENTENCE("sentence"),
     PARAMETER(""),
+    COMMA(","),
     SEMICOLON(";"),
     ID(""),
     PAREN_O("("),

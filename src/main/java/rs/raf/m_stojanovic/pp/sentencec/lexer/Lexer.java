@@ -43,6 +43,9 @@ public class Lexer {
             case ')':
                 this.addToken(TokenType.PAREN_C);
                 break;
+            case ',':
+                this.addToken(TokenType.COMMA);
+                break;
             case ';':
                 this.addToken(TokenType.SEMICOLON);
                 break;

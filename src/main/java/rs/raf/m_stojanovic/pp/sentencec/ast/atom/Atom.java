@@ -7,6 +7,8 @@ public abstract class Atom {
 
     public final Token token;
 
+    public Token reference;
+
     protected Atom(Token token) {
         this.token = token;
     }

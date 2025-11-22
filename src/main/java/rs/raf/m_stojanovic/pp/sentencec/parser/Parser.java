@@ -86,6 +86,8 @@ public class Parser {
 
     private List<Expression> parseArguments() {
         List<Expression> expressions = new ArrayList<>();
+        if (this.match(TokenType.PAREN_C))
+            return expressions;
         Token next;
         do {
             expressions.add(this.parseArgument());
@@ -100,9 +102,9 @@ public class Parser {
             case ID:
                 this.consume(TokenType.PAREN_O, "No argument parenthesis for a sentence call");
                 List<Expression> exprs = this.parseArguments();
-                this.consume(TokenType.PAREN_C, "Argument parenthesis not closed");
+//                this.consume(TokenType.PAREN_C, "Argument parenthesis not closed");
                 return new CallExpression(new Sentence(first), exprs);
-            case WORD:
+            case PARAMETER: case WORD:
                 return new WordExpression(new Word(first));
             default:
                 throw this.error(first, "Symbol not expected at this context");
@@ -112,16 +114,22 @@ public class Parser {
     private List<Statement> parseSentence(int end) {
         List<Statement> statements = new ArrayList<>();
         int last = end - 1;
+        boolean atEnd = false;
         do {
+            if (atEnd && this.isAtEnd())
+                throw new RuntimeException("Unexpected end of sentence");
             statements.add(this.parseStatement());
             if (statements.get(statements.size() - 1) instanceof EndStatement)
                 --end;
+            atEnd = this.isAtEnd();
         } while (end > last);
         return statements;
     }
 
     private List<Parameter> parseParameters() {
         List<Parameter> params = new ArrayList<>();
+        if (this.match(TokenType.PAREN_C))
+            return params;
         Token next;
         do {
             Token token = this.consume(TokenType.PARAMETER, "Parameter expected");

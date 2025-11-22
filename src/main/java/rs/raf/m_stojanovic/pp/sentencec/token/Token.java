@@ -4,6 +4,14 @@ import java.util.Optional;
 
 public class Token {
 
+    public static boolean areEqual(Token t1, Token t2) {
+        if (t1 == null && t2 == null)
+            return true;
+        if (t1 == null || t2 == null)
+            return false;
+        return t1.lexeme.equals(t2.lexeme);
+    }
+
     private final String lexeme;
     private final Optional<String> literal;
     private final TokenType type;

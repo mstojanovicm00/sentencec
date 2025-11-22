@@ -1,8 +1,10 @@
 package rs.raf.m_stojanovic.pp.sentencec;
 
 import rs.raf.m_stojanovic.pp.sentencec.ast.Line;
+import rs.raf.m_stojanovic.pp.sentencec.interpreter.Interpreter;
 import rs.raf.m_stojanovic.pp.sentencec.lexer.Lexer;
 import rs.raf.m_stojanovic.pp.sentencec.parser.Parser;
+import rs.raf.m_stojanovic.pp.sentencec.semantic.DeclarationVisitor;
 import rs.raf.m_stojanovic.pp.sentencec.token.Token;
 
 import java.util.List;
@@ -26,7 +28,7 @@ public class DefaultWorker implements Worker {
         try {
             tokens = lexer.scanTokens();
         } catch (RuntimeException e) {
-            return new WorkResult.BadResult(e, -1);
+            return new WorkResult.BadResult(e);
         }
         tokens.forEach(System.out::println);
 
@@ -38,12 +40,24 @@ public class DefaultWorker implements Worker {
         try {
             line = parser.parse();
         } catch (RuntimeException e) {
-            return new WorkResult.BadResult(e, -1);
+            return new WorkResult.BadResult(e);
         }
         line.print(System.out);
 
         System.out.println();
 
-        return new WorkResult.GoodResult(code);
+        // Declarations
+        DeclarationVisitor declarationVisitor = new DeclarationVisitor();
+        try {
+            declarationVisitor.visitLine(line);
+        } catch (RuntimeException e) {
+            return new WorkResult.BadResult(e);
+        }
+
+        // Interpreter
+        Interpreter interpreter = new Interpreter();
+        StringBuilder sb = interpreter.visitLine(line);
+
+        return new WorkResult.GoodResult(sb.toString());
     }
 }

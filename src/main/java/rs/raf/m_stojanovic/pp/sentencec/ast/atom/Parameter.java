@@ -12,4 +12,13 @@ public class Parameter extends Atom {
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitParameter(this);
     }
+
+    public static class ParameterInUse extends Parameter {
+        public final StringBuilder argument;
+
+        public ParameterInUse(Token token, StringBuilder argument) {
+            super(token);
+            this.argument = argument;
+        }
+    }
 }

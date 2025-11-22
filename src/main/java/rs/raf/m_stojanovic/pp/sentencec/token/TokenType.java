@@ -19,7 +19,6 @@ public enum TokenType {
     PAREN_O("("),
     PAREN_C(")"),
     ASSIGN("="),
-    SNAKE("_"),
     END("end"),
     EOL("\1");
 

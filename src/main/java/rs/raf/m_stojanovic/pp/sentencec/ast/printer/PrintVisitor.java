@@ -7,6 +7,7 @@ import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Sentence;
 import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Word;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.CallExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.Expression;
+import rs.raf.m_stojanovic.pp.sentencec.ast.expr.ParameterExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.WordExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.stmt.*;
 
@@ -37,6 +38,13 @@ public class PrintVisitor implements Visitor<CompositeString> {
     }
 
     @Override
+    public CompositeString visitParameterStatement(ParameterStatement parameterStatement) {
+        CompositeString cs = new CompositeString("PARAMETER");
+        cs.addChild(parameterStatement.expression.accept(this));
+        return cs;
+    }
+
+    @Override
     public CompositeString visitSentenceStatement(SentenceStatement sentenceStatement) {
         CompositeString cs = new CompositeString("SENTENCE");
         CompositeString p = new CompositeString("PARAMS");
@@ -63,6 +71,13 @@ public class PrintVisitor implements Visitor<CompositeString> {
         cs.addChild(expression.sentence.accept(this));
         for (Expression a : expression.arguments)
             cs.addChild(a.accept(this));
+        return cs;
+    }
+
+    @Override
+    public CompositeString visitParameterExpression(ParameterExpression expression) {
+        CompositeString cs = new CompositeString("P");
+        cs.addChild(expression.parameter.accept(this));
         return cs;
     }
 

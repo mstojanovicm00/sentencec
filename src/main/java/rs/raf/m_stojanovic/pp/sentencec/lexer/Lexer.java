@@ -52,9 +52,6 @@ public class Lexer {
             case '=':
                 this.addToken(TokenType.ASSIGN);
                 break;
-            case '_':
-                this.addToken(TokenType.SNAKE);
-                break;
             case '$':
                 this.identifier(TokenType.PARAMETER);
                 break;

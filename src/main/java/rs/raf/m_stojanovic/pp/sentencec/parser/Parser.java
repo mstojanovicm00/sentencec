@@ -6,6 +6,7 @@ import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Sentence;
 import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Word;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.CallExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.Expression;
+import rs.raf.m_stojanovic.pp.sentencec.ast.expr.ParameterExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.WordExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.stmt.*;
 import rs.raf.m_stojanovic.pp.sentencec.token.Token;
@@ -37,6 +38,7 @@ public class Parser {
         List<Statement> statements = new ArrayList<>();
         do {
             statements.add(this.parseStatement());
+            this.consume(TokenType.SEMICOLON, "';' expected at the end of the statement");
         } while (this.check(TokenType.SEMICOLON));
         return statements;
     }
@@ -47,9 +49,8 @@ public class Parser {
             case WORD:
                 if (this.check(TokenType.SEMICOLON))
                     return new WordStatement(new WordExpression(new Word(first)));
-                // concat
                 throw this.error(first, "The word at the beginning of the line must be "
-                                                + "followed by ';'");
+                        + "followed by ';'");
             case SENTENCE:
                 Token id = this.consume(TokenType.ID, "The symbol 'sentence' must be " +
                         "followed by the sentence name");
@@ -59,7 +60,10 @@ public class Parser {
                 List<Statement> stats = this.parseSentence(1);
                 return new SentenceStatement(new Sentence(id), params, stats);
             case PARAMETER:
-                throw this.error(first, "Parameter not expected at this context");
+                if (this.check(TokenType.SEMICOLON))
+                    return new ParameterStatement(new ParameterExpression(new Parameter(first)));
+                throw this.error(first, "The parameter at the beginning of the line must be "
+                        + "followed by ';'");
             case SEMICOLON:
                 return new NullStatement(first);
             case END:
@@ -74,8 +78,6 @@ public class Parser {
                 throw this.error(first, "')' not expected at this context");
             case ASSIGN:
                 throw this.error(first, "'=' not expected at this context");
-            case SNAKE:
-                throw this.error(first, "'_' not expected at this context");
             case EOL:
                 break;
         }

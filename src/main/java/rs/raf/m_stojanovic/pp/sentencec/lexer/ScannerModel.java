@@ -37,6 +37,7 @@ public class ScannerModel {
 
     public int getCur() { return cur; }
     public int getLine() { return line; }
+    public void setLine(int line) { this.line = line; }
     public int getCol() { return col; }
     public int getStartIdx() { return startIdx; }
     public int getStartLine() { return startLine; }

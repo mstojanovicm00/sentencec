@@ -17,8 +17,13 @@ public class DefaultWorker implements Worker {
         ++this.lineNumber;
 
         // Lexer
-        Lexer lexer = new Lexer(code);
-        List<Token> tokens = lexer.scanTokens();
+        Lexer lexer = new Lexer(code, this.lineNumber);
+        List<Token> tokens;
+        try {
+            tokens = lexer.scanTokens();
+        } catch (RuntimeException e) {
+            return new WorkResult.BadResult(e, -1);
+        }
         tokens.forEach(System.out::println);
 
         return new WorkResult.GoodResult(code);

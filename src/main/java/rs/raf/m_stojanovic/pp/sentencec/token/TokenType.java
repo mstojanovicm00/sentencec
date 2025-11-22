@@ -6,7 +6,7 @@ public enum TokenType {
             - This;
             - Is;
             - My;
-            - sentence %posses($x) = This_is_my_$x;
+            - sentence %posses($x) = This_is_my_$x; end;
             - Problem;
             - %posses(Problem);
      */
@@ -19,7 +19,8 @@ public enum TokenType {
     PAREN_C(")"),
     ASSIGN("="),
     SNAKE("_"),
-    EOF("\1");
+    END("end"),
+    EOL("\1");
 
     private final String word;
 

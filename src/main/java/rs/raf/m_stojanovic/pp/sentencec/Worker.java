@@ -57,6 +57,11 @@ public interface Worker {
                 this.exception = exception;
             }
 
+            public BadResult(Exception exception, Integer exitStatus) {
+                super(System.err, exitStatus);
+                this.exception = exception;
+            }
+
             @Override
             public String get() {
                 return exception.getMessage();

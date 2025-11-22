@@ -10,16 +10,19 @@ import java.util.Map;
 public class Lexer {
 
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
-            Map.entry("sentence", TokenType.SENTENCE)
+            Map.entry("sentence", TokenType.SENTENCE),
+            Map.entry("end", TokenType.END)
     );
 
     private final ScannerModel model;
     private final String source;
+    private final int lineNumber;
     private final List<Token> tokens = new ArrayList<>();
 
-    public Lexer(String source) {
+    public Lexer(String source, int line) {
         this.source = source;
         this.model = new ScannerModel(this.source);
+        this.lineNumber = line;
     }
 
     public List<Token> scanTokens() {
@@ -27,7 +30,7 @@ public class Lexer {
             this.model.beginToken();
             scanToken();
         }
-        this.tokens.add(new Token("\0", TokenType.EOF, this.source, this.model.getCol()));
+        this.tokens.add(new Token("\0", TokenType.EOL, this.source, this.model.getCol()));
         return this.tokens;
     }
 
@@ -55,6 +58,9 @@ public class Lexer {
             case '%':
                 this.identifier(TokenType.ID);
                 break;
+            case ' ':
+            case '\t':
+                break;
             default:
                 this.identifier(null);
         }
@@ -63,8 +69,10 @@ public class Lexer {
     private void identifier(TokenType proposed) {
         while (isIdentPart(this.model.peek()))
             this.model.advance();
+        if (Character.isDigit(this.model.peek()))
+            throw this.error("Digit found");
         String text = this.source.substring(this.model.getStartIdx(), this.model.getCur());
-        if (proposed == null) {
+        if (proposed == null || proposed == TokenType.WORD) {
             TokenType type = KEYWORDS.getOrDefault(text.toLowerCase(), TokenType.WORD);
             if (type == TokenType.WORD)
                 this.addToken(TokenType.WORD, text, text.toLowerCase());
@@ -74,35 +82,27 @@ public class Lexer {
         }
         switch (proposed) {
             case ID:
-                this.addToken(TokenType.ID, "%" + text);
+                this.addToken(TokenType.ID, text);
                 break;
             case PARAMETER:
-                this.addToken(TokenType.PARAMETER, "$" + text);
+                this.addToken(TokenType.PARAMETER, text);
                 break;
         }
     }
 
     private boolean isIdentStart(char c) { return Character.isLetter(c); }
-    private boolean isIdentPart(char c)  { return isIdentStart(c) || Character.isDigit(c); }
+    private boolean isIdentPart(char c)  { return isIdentStart(c); }
 
     private void addToken(TokenType type, String lexeme, String literal) {
-        if (type.getWord().isEmpty()) {
-            this.tokens.add(new Token(lexeme, literal, type, this.source, this.model.getCol()));
-            return;
-        }
-        throw new RuntimeException("Something's wrong, check your code!");
+        this.tokens.add(new Token(lexeme, literal, type, this.source, this.model.getStartCol()));
     }
 
     private void addToken(TokenType type, String lexeme) {
-        if (type.getWord().isEmpty()) {
-            this.tokens.add(new Token(lexeme, type, this.source, this.model.getCol()));
-            return;
-        }
-        throw new RuntimeException("Something's wrong, check your code!");
+        this.tokens.add(new Token(lexeme, type, this.source, this.model.getStartCol()));
     }
 
     private void addToken(TokenType type) {
-        this.tokens.add(new Token(type.getWord(), type, this.source, this.model.getCol()));
+        this.tokens.add(new Token(type.getWord(), type, this.source, this.model.getStartCol()));
     }
 
     private RuntimeException error(String msg) {

@@ -1,6 +1,6 @@
 package rs.raf.m_stojanovic.pp.sentencec.semantic;
 
-import rs.raf.m_stojanovic.pp.sentencec.token.Token;
+import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Atom;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,53 +9,60 @@ import java.util.Map;
 
 public class SymbolTable {
 
-    private static final Map<String, Token> FLAT_DECLARATIONS = new HashMap<>();
+    private static final Map<String, Atom> GLOBALS = new HashMap<>();
 
-    private final List<Map<String, Token>> staticDeclarations = new ArrayList<>();
+    public static Atom declareGlobal(String name, Atom atom) {
+        Atom previous = GLOBALS.get(name);
+        if (previous != null)
+            throw new RuntimeException("Already declared atom " + name);
+        GLOBALS.put(name, atom);
+        return atom;
+    }
+
+    private final List<Map<String, Atom>> declarations = new ArrayList<>();
 
     public SymbolTable() {
-        this.staticDeclarations.add(new HashMap<>());
+        this.declarations.add(new HashMap<>());
     }
 
-    public Token declare(String name, Token token) {
-        if (this.getCurrentScope().get(name) != null)
-            throw new RuntimeException("Duplicate declaration of '" + name + "'");
-        this.getCurrentScope().put(name, token);
-        System.out.println("Name '" + name + "' declared");
-        return token;
-    }
-
-    public Token lookup(String name) {
-        for (int i = this.staticDeclarations.size() - 1; i >= 0; i--) {
-            Map<String, Token> map = this.staticDeclarations.get(i);
-            if (map.containsKey(name)) {
-                System.out.println("Name '" + name + "' found in lexical/static scope");
-                return map.get(name);
-            }
-        }
-        if (FLAT_DECLARATIONS.containsKey(name)) {
-            System.out.println("Name '" + name + "' found in flat scope");
-            return FLAT_DECLARATIONS.get(name);
-        }
-        throw new RuntimeException("No declaration named '" + name + "'");
-    }
-
-    public Map<String, Token> enterScope() {
-        this.staticDeclarations.add(new HashMap<>());
+    public Map<String, Atom> enterScope() {
+        this.declarations.add(0, new HashMap<>());
         return this.getCurrentScope();
     }
 
-    public Map<String, Token> exitScope() {
-        this.staticDeclarations.remove(this.staticDeclarations.size() - 1);
+    public Atom declare(String name, Atom atom) {
+        Atom previous = this.declarations.get(0).get(name);
+        if (previous != null)
+            throw new RuntimeException("Already declared atom " + name);
+        previous = GLOBALS.get(name);
+        if (previous != null)
+            throw new RuntimeException("Already declared atom " + name);
+        this.declarations.get(0).put(name, atom);
+        return atom;
+    }
+
+    public Atom lookup(String name) {
+        if (this.getCurrentScope().containsKey(name))
+            return this.getCurrentScope().get(name);
+        if (GLOBALS.containsKey(name))
+            return GLOBALS.get(name);
+        throw new RuntimeException("Symbol table has no entry with name " + name);
+    }
+
+    public Map<String, Atom> exitScope() {
+        this.declarations.remove(0);
         return this.getCurrentScope();
     }
 
-    public Map<String, Token> getCurrentScope() {
-        return this.staticDeclarations.get(staticDeclarations.size() - 1);
-    }
-
-    public void destroy() {
-        FLAT_DECLARATIONS.putAll(this.staticDeclarations.get(0));
+    private Map<String, Atom> getCurrentScope() {
+        Map<String, Atom> currentScope = new HashMap<>();
+        for (Map<String, Atom> d : this.declarations) {
+            for (String s : d.keySet())
+                currentScope.put(s, d.get(s));
+        }
+        for (String key : GLOBALS.keySet())
+            currentScope.putIfAbsent(key, GLOBALS.get(key));
+        return currentScope;
     }
 
 }

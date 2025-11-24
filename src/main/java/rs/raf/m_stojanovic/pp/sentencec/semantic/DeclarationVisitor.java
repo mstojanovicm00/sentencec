@@ -2,42 +2,36 @@ package rs.raf.m_stojanovic.pp.sentencec.semantic;
 
 import rs.raf.m_stojanovic.pp.sentencec.ast.Line;
 import rs.raf.m_stojanovic.pp.sentencec.ast.Visitor;
-import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Atom;
 import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Parameter;
 import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Sentence;
 import rs.raf.m_stojanovic.pp.sentencec.ast.atom.Word;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.CallExpression;
+import rs.raf.m_stojanovic.pp.sentencec.ast.expr.Expression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.ParameterExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.expr.WordExpression;
 import rs.raf.m_stojanovic.pp.sentencec.ast.stmt.*;
-import rs.raf.m_stojanovic.pp.sentencec.token.Token;
 
 public class DeclarationVisitor implements Visitor<Void> {
 
-    private SymbolTable symbolTable;
+    private final SymbolTable symbolTable = new SymbolTable();
 
-    public void begin() {
-        this.symbolTable = new SymbolTable();
-    }
-
-    public void end() {
-        this.symbolTable.destroy();
-        this.symbolTable = null;
+    public void declareAll(Line line) {
+        this.visitLine(line);
     }
 
     @Override
     public Void visitLine(Line line) {
-        this.begin();
-        for (Statement stmt : line.statements)
+        for (Statement stmt : line.statements) {
+            this.symbolTable.enterScope();
             stmt.accept(this);
-        this.end();
+            this.symbolTable.exitScope();
+        }
         return null;
     }
 
     @Override
     public Void visitCallStatement(CallStatement callStatement) {
-        callStatement.call.accept(this);
-        return null;
+        return callStatement.call.accept(this);
     }
 
     @Override
@@ -52,43 +46,57 @@ public class DeclarationVisitor implements Visitor<Void> {
 
     @Override
     public Void visitParameterStatement(ParameterStatement parameterStatement) {
-        parameterStatement.expression.accept(this);
-        return null;
+        return parameterStatement.expression.accept(this);
     }
 
     @Override
     public Void visitSentenceStatement(SentenceStatement sentenceStatement) {
-        this.declareAtom(sentenceStatement.sentence.token.getLexeme(), sentenceStatement.sentence);
         this.symbolTable.enterScope();
-        for (Parameter parameter : sentenceStatement.parameters)
-            this.declareAtom(parameter.token.getLexeme(), parameter);
-        for (Statement stmt : sentenceStatement.statements)
+        for (Parameter param : sentenceStatement.parameters)
+            this.symbolTable.declare(param.token.getLexeme(), param);
+        for (Statement stmt : sentenceStatement.statements) {
+            stmt.outer = false;
             stmt.accept(this);
+        }
         this.symbolTable.exitScope();
+        Sentence sentence = sentenceStatement.sentence;
+        this.symbolTable.declare(sentence.token.getLexeme(), sentence);
+        if (sentenceStatement.outer)
+            SymbolTable.declareGlobal(sentence.token.getLexeme(), sentence);
         return null;
     }
 
     @Override
     public Void visitWordStatement(WordStatement wordStatement) {
-        this.declareAtom(wordStatement.word.word.token.getLexeme(), wordStatement.word.word);
+        wordStatement.word.accept(this);
+        if (wordStatement.outer)
+            SymbolTable.declareGlobal(wordStatement.word.word.token.getLexeme(), wordStatement.word.word);
         return null;
     }
 
     @Override
     public Void visitCallExpression(CallExpression expression) {
         expression.sentence.accept(this);
+        for (Expression arg : expression.arguments) {
+            if (arg instanceof WordExpression) {
+                WordExpression wordExpression = (WordExpression) arg;
+                wordExpression.word.accept(this);
+            } else
+                arg.accept(this);
+        }
         return null;
     }
 
     @Override
     public Void visitParameterExpression(ParameterExpression expression) {
-        expression.parameter.accept(this);
-        return null;
+        return expression.parameter.accept(this);
     }
 
     @Override
     public Void visitWordExpression(WordExpression expression) {
-        expression.word.accept(this);
+        Word word = expression.word;
+        String name = word.token.getLexeme();
+        this.symbolTable.declare(name, word);
         return null;
     }
 
@@ -108,9 +116,5 @@ public class DeclarationVisitor implements Visitor<Void> {
     public Void visitWord(Word word) {
         word.reference = this.symbolTable.lookup(word.token.getLexeme());
         return null;
-    }
-
-    public void declareAtom(String name, Atom atom) {
-        atom.reference = this.symbolTable.declare(name, atom.token);
     }
 }

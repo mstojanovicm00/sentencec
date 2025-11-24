@@ -1,7 +1,6 @@
 package rs.raf.m_stojanovic.pp.sentencec;
 
 import rs.raf.m_stojanovic.pp.sentencec.ast.Line;
-import rs.raf.m_stojanovic.pp.sentencec.interpreter.Interpreter;
 import rs.raf.m_stojanovic.pp.sentencec.lexer.Lexer;
 import rs.raf.m_stojanovic.pp.sentencec.parser.Parser;
 import rs.raf.m_stojanovic.pp.sentencec.semantic.DeclarationVisitor;
@@ -49,15 +48,11 @@ public class DefaultWorker implements Worker {
         // Declarations
         DeclarationVisitor declarationVisitor = new DeclarationVisitor();
         try {
-            declarationVisitor.visitLine(line);
+            declarationVisitor.declareAll(line);
         } catch (RuntimeException e) {
             return new WorkResult.BadResult(e);
         }
 
-        // Interpreter
-        Interpreter interpreter = new Interpreter();
-        StringBuilder sb = interpreter.visitLine(line);
-
-        return new WorkResult.GoodResult(sb.toString());
+        return new WorkResult.GoodResult(code);
     }
 }

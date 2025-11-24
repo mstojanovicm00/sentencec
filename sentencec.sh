@@ -1,0 +1,1 @@
+java -javaagent:/snap/intellij-idea-ultimate/690/lib/idea_rt.jar=33035 -Dfile.encoding=UTF-8 -classpath /home/mihajlo-stojanovic/IdeaProjects/sentencec/target/classes rs.raf.m_stojanovic.pp.sentencec.Main

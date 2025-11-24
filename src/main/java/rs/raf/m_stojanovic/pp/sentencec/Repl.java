@@ -13,27 +13,23 @@ public class Repl {
         this.lineBegin = lineBegin;
     }
 
-    public final int loop() {
-        int status = 0;
+    public final void loop() {
         while (true) {
             String line = this.read();
             Worker.WorkResult result = this.worker.work(line);
             this.write(result.get(), result.getOut());
-            status = result.map();
-            if (status > 0)
-                this.write("There was a problem compiling the statement: " + line, System.err);
-            if (status >= 0)
+            if (result.map() == 0)
                 break;
         }
-        return status;
     }
 
     private String read() {
-        System.out.print(lineBegin + " ");
+        System.out.print(this.lineBegin + " ");
         return scanner.nextLine();
     }
 
     private void write(String message, PrintStream out) {
-        out.println(message);
+        if (!message.isBlank())
+            out.println(message.trim());
     }
 }

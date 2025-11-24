@@ -12,4 +12,9 @@ public class Word extends Atom {
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitWord(this);
     }
+
+    @Override
+    public String toString() {
+        return this.token.getLexeme();
+    }
 }

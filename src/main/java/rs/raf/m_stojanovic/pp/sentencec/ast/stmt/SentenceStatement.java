@@ -15,6 +15,7 @@ public class SentenceStatement extends CompositeStatement {
         super(statements);
         this.sentence = sentence;
         this.parameters = parameters;
+        this.sentence.sentenceStatement = this;
     }
 
     @Override

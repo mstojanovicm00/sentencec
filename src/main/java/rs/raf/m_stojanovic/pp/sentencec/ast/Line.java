@@ -1,6 +1,5 @@
 package rs.raf.m_stojanovic.pp.sentencec.ast;
 
-import rs.raf.m_stojanovic.pp.sentencec.ast.printer.CompositeString;
 import rs.raf.m_stojanovic.pp.sentencec.ast.printer.PrintVisitor;
 import rs.raf.m_stojanovic.pp.sentencec.ast.stmt.Statement;
 

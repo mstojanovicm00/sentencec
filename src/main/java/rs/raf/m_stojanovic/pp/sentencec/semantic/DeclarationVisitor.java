@@ -23,6 +23,7 @@ public class DeclarationVisitor implements Visitor<Void> {
     public Void visitLine(Line line) {
         for (Statement stmt : line.statements) {
             this.symbolTable.enterScope();
+            stmt.outer = true;
             stmt.accept(this);
             this.symbolTable.exitScope();
         }

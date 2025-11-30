@@ -3,12 +3,9 @@ package rs.raf.m_stojanovic.pp.sentencec.token;
 public enum TokenType {
     /*
         Valid programs:
-            - This;
-            - Is;
-            - My;
-            - sentence %posses($x) = This_is_my_$x; end;
-            - Problem;
-            - %posses(Problem);
+            - sentence %posses($x) = this; is; my; $x; end;
+            - problem;
+            - %posses(problem);
      */
     WORD(""),
     SENTENCE("sentence"),
